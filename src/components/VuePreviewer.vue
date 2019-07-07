@@ -136,6 +136,7 @@ export default {
         this.currentIndex = +target.dataset['index']
         this.isShowPre = true
         this.$nextTick(() => this.$refs['selectImg'].focus())
+        this.$emit('select', this.imageList[this.currentIndex])
       }
     },
     zoomin() {
@@ -205,6 +206,7 @@ export default {
       this.currentIndex = -1
       this.isShowPre = false
       this.resetRate()
+      this.$emit('close')
     },
     resetRate() {
       this.scaleRate = 1
