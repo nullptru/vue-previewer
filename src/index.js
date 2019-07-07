@@ -1,4 +1,4 @@
-import VuePreview from './components/VuePreview.vue';
+import VuePreviewer from './components/VuePreviewer.vue';
 import './iconfont.js';
 
 function install(Vue) {
@@ -6,9 +6,9 @@ function install(Vue) {
     return;
   }
   install.installed = true;
-  Vue.component(VuePreview.name, VuePreview);
+  Vue.component(VuePreviewer.name, VuePreviewer);
 }
 
-VuePreview.install = install;
+VuePreviewer.install = install;
 
-export default VuePreview;
+export default VuePreviewer;

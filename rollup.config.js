@@ -7,9 +7,9 @@ import resolve from "rollup-plugin-node-resolve"
 const ENV = process.env.NODE_ENV;
 
 const fileMap = {
-  cjs: 'vue-preview-common',
-  esm: 'vue-preview-esm',
-  umd: 'vue-preview'
+  cjs: 'vue-previewer-common',
+  esm: 'vue-previewer-esm',
+  umd: 'vue-previewer'
 }
 console.log(process.env.NODE_ENV)
 
@@ -18,7 +18,7 @@ export default [{
   output: Object.keys(fileMap).map(type => ({
     file: `dist/${fileMap[type]}${ENV === 'production' ? '.min' : ''}.js`,
     format: type,
-    name: type === 'umd' ? 'VuePreview' : undefined
+    name: type === 'umd' ? 'VuePreviewer' : undefined
   })),
   plugins: [
     resolve(),

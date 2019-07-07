@@ -6,13 +6,13 @@
         v-for="(img, index) in imageList"
         :key="index"
       )
-        template(v-if="model === image")
+        template(v-if="mode === image")
           img(
             :src="img.src"
             :width="img.width"
             :height="img.height"
             :data-index="index"
-            :style="smallImageStyle"
+            :style="thumbnailStyle"
           )
         template(v-else)
           span.link(name="img" :data-index="index") {{ img.name }}
@@ -48,12 +48,12 @@ import Icon from './Icon.vue'
 const defaultOptions = {
   defaultWidth: '100px',
   defaultHeight: '75px',
-  smallImageStyle: {
+  thumbnailStyle: {
     backgroundSize: 'cover'
   }
 }
 export default {
-  name: 'VuePreview',
+  name: 'VuePreviewer',
   props: {
     images: {
       type: Array,
@@ -76,7 +76,7 @@ export default {
       imageList: [],
 
       isShowPre: false,
-      smallImageStyle: this.options.smallImageStyle || defaultOptions.smallImageStyle,
+      thumbnailStyle: this.options.thumbnailStyle || defaultOptions.thumbnailStyle,
       // operation
       scaleRate: 1,
       rotateRate: 0,

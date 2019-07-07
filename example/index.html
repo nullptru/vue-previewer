@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-  <script src="../dist/vue-preview.js"></script>
+  <script src="../dist/vue-previewer.js"></script>
   <title>Document</title>
 </head>
 <body>
@@ -13,13 +13,13 @@
   <script>
     new Vue({
       el: '#app',
-      components: { VuePreview: window.VuePreview },
+      components: { VuePreviewer: window.VuePreviewer },
       data() {
         return {
           imgs: ['https://tpc.googlesyndication.com/simgad/14581137248481744208?sqp=4sqPyQQrQikqJwhfEAEdAAC0QiABKAEwCTgDQPCTCUgAUAFYAWBfcAJ4AcUBLbKdPg&rs=AOga4qkLa5B3YYxjYNuWwQb3i4zax37NNA','https://pic4.zhimg.com/v2-3859d1924b5a39444b56f3d8ceda9057_1200x500.jpg', "https://www.google.com/logos/doodles/2019/2019-womens-world-cup-day-25-4819909247238144-s.png"]
         }
       },
-      template: '<vue-preview :images="imgs"/>'
+      template: '<vue-previewer :images="imgs" mode="link"/>'
     })
   </script>
 </body>
