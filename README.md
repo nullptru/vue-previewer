@@ -10,14 +10,14 @@
 ### Install
 ```
 // with yarn
-yarn add vue-previewer
+yarn add vue-image-previewer
 // with npm
-npm install vue-previewer
+npm install vue-image-previewer
 ```
 
 ### Usage
 ```
-import VuePreviewer from 'vue-previewer'
+import VuePreviewer from 'vue-image-previewer'
 
 // defalut install
 Vue.use(VuePreviewer)
@@ -27,7 +27,7 @@ Vue.use(VuePreviewer)
 ```
 new Vue({
   el: '#app',
-  components: { VuePreviewer: window.VuePreviewer },
+  components: { VuePreviewer },
   data() {
     return {
       imgs: ['https://tpc.googlesyndication.com/simgad/14581137248481744208?sqp=4sqPyQQrQikqJwhfEAEdAAC0QiABKAEwCTgDQPCTCUgAUAFYAWBfcAJ4AcUBLbKdPg&rs=AOga4qkLa5B3YYxjYNuWwQb3i4zax37NNA','https://pic4.zhimg.com/v2-3859d1924b5a39444b56f3d8ceda9057_1200x500.jpg', "https://www.google.com/logos/doodles/2019/2019-womens-world-cup-day-25-4819909247238144-s.png"]

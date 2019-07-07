@@ -7,9 +7,9 @@ import resolve from "rollup-plugin-node-resolve"
 const ENV = process.env.NODE_ENV;
 
 const fileMap = {
-  cjs: 'vue-previewer-common',
-  esm: 'vue-previewer-esm',
-  umd: 'vue-previewer'
+  cjs: 'vue-image-previewer.common',
+  esm: 'vue-image-previewer.esm',
+  umd: 'vue-image-previewer'
 }
 console.log(process.env.NODE_ENV)
 

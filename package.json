@@ -1,6 +1,6 @@
 {
-  "name": "vue-previewer",
-  "version": "0.1.0",
+  "name": "vue-image-previewer",
+  "version": "0.1.1",
   "description": "A vue component for previewing images",
   "files": [
     "src",
@@ -10,8 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/nullptru/vue-preview.git"
   },
-  "main": "dist/vue-previewer.common.js",
-  "module": "./dist/vue-previewer.esm.js",
+  "main": "dist/vue-image-previewer.common.js",
+  "module": "./dist/vue-image-previewer.esm.js",
   "author": "Geass",
   "license": "MIT",
   "scripts": {
