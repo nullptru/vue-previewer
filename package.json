@@ -10,8 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/nullptru/vue-preview.git"
   },
-  "main": "dist/vue-preview.common.js",
-  "module": "dist/vue-preview.esm.js",
+  "main": "dist/vue-previewer.common.js",
+  "module": "./dist/vue-previewer.esm.js",
   "author": "Geass",
   "license": "MIT",
   "scripts": {
