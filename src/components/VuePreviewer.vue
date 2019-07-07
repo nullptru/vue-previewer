@@ -6,7 +6,7 @@
         v-for="(img, index) in imageList"
         :key="index"
       )
-        template(v-if="mode === image")
+        template(v-if="mode === 'image'")
           img(
             :src="img.src"
             :width="img.width"
@@ -70,6 +70,7 @@ export default {
   },
   components: { Icon },
   data() {
+    console.log(this.mode)
     return {
       inIframe: window.self !== window.top,
       currentIndex: -1,
