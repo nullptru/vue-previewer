@@ -1,5 +1,5 @@
 {
-  "name": "vue-preview",
+  "name": "vue-previewer",
   "version": "0.1.0",
   "description": "A vue component for previewing images",
   "files": [
@@ -16,11 +16,11 @@
   "license": "MIT",
   "scripts": {
     "build": "cross-env NODE_ENV=development rollup -c",
-    "build:prod": "cross-env NODE_ENV=production rollup -c",
+    "build:prod": "yarn run build && cross-env NODE_ENV=production rollup -c",
     "dev": "yarn run build && anywhere"
   },
   "keywords": [
-    "vue", "image", "preview"
+    "vue", "image", "preview", "previewer"
   ],
   "dependencies": {
     "vue": "^2.6.10"
