@@ -2,17 +2,17 @@
   section.vue-preview(@keydown="onKey")
     //- img list
     section.list(@click="onImageClick")
-      span.list__container(
+      span.list__img(
         v-for="(img, index) in imageList"
         :key="index"
       )
         template(v-if="mode === 'image'")
           img(
-            :src="img.src"
+            :src="img.thumbnailSrc"
             :width="img.width"
             :height="img.height"
             :data-index="index"
-            :style="thumbnailStyle"
+            :style="componentOptions.thumbnailStyle"
           )
         template(v-else)
           span.link(name="img" :data-index="index") {{ img.name }}
@@ -35,10 +35,10 @@
           :style="{cursor: cursorStyle, transform: `scale(${scaleRate}) rotate(${rotateRate}deg)`}"
           @click.prevent.stop="imageClick"
         )
-          img.select-img(:src="imageList[currentIndex].src")
+          img(:src="imageList[currentIndex].src")
       //- footer
-      .pre__footer
-        slot
+      .pre__footer(v-if="showFooter")
+        slot(name="footer" :image="imageList[currentIndex]")
           .footer {{ imageList[currentIndex].name }}
 </template>
 
@@ -50,6 +50,13 @@ const defaultOptions = {
   defaultHeight: '75px',
   thumbnailStyle: {
     backgroundSize: 'cover'
+  },
+  keyMap: {
+    zoomin: '+',
+    zoomout: '-',
+    rotate: 'r',
+    prev: 'ArrowLeft',
+    next: 'ArrowRight'
   }
 }
 export default {
@@ -66,32 +73,36 @@ export default {
     options: {
       type: Object,
       default: () => ({})
+    },
+    showFooter: {
+      type: Boolean,
+      default: true
     }
   },
   components: { Icon },
   data() {
-    console.log(this.mode)
     return {
       inIframe: window.self !== window.top,
       currentIndex: -1,
-      imageList: [],
-
       isShowPre: false,
-      thumbnailStyle: this.options.thumbnailStyle || defaultOptions.thumbnailStyle,
       // operation
       scaleRate: 1,
       rotateRate: 0,
       cursorStyle: 'zoom-in'
     }
   },
-  watch: {
-    images: {
-      immediate: true,
-      handler(imgs) {
-        this.imageList = this.normalizeImage(imgs, {
-          sWidth: this.options.defaultWidth || defaultOptions.defaultWidth,
-          sHeight: this.options.defaultHeight || defaultOptions.defaultHeight
-        })
+  computed: {
+    imageList() {
+      return this.normalizeImage(this.images, {
+        sWidth: this.componentOptions.defaultWidth,
+        sHeight: this.componentOptions.defaultHeight
+      })
+    },
+    componentOptions() {
+      return {
+        ...this.$global_vue_image_previewer_options,
+        ...defaultOptions,
+        ...this.options
       }
     }
   },
@@ -103,13 +114,22 @@ export default {
   },
   methods: {
     onKey(key) {
-      switch (key.code) {
-        case 'ArrowLeft':
+      const { keyMap = {} } = this.componentOptions
+      switch (key.key) {
+        case keyMap.prev:
           this.prevClick()
           break
-        case 'ArrowRight':
+        case keyMap.next:
           this.nextClick()
           break
+        case keyMap.zoomin:
+          this.zoomin()
+          break
+        case keyMap.zoomout:
+          this.zoomout()
+          break
+        case keyMap.rotate:
+          this.rotate()
       }
     },
     normalizeImage(imgs, { sWidth, sHeight }) {
@@ -120,6 +140,7 @@ export default {
             width: sWidth,
             height: sHeight,
             src: img,
+            thumbnailSrc: img,
             name: `Image ${idx + 1}`
           }
         } else {
@@ -127,6 +148,7 @@ export default {
             width: img.width || sWidth,
             height: img.height || sHeight,
             src: img.src,
+            thumbnailSrc: img.thumbnailSrc || img.src,
             name: img.name
           }
         }
@@ -136,7 +158,9 @@ export default {
       if (target.nodeName === 'IMG' || target.getAttribute('name') === 'img') {
         this.currentIndex = +target.dataset['index']
         this.isShowPre = true
-        this.$nextTick(() => this.$refs['selectImg'].focus())
+        this.$nextTick(() => {
+          this.$refs['selectImg'].focus()
+        })
         this.$emit('select', this.imageList[this.currentIndex])
       }
     },
@@ -193,14 +217,22 @@ export default {
     },
     prevClick() {
       if (this.currentIndex > 0) {
+        this.$refs['selectImg'].classList.add('select-img')
         this.currentIndex -= 1
         this.resetRate()
+        setTimeout(() => {
+          this.$refs['selectImg'].classList.remove('select-img')
+        })
       }
     },
     nextClick() {
       if (this.currentIndex < this.imageList.length - 1) {
+        this.$refs['selectImg'].classList.add('select-img')
         this.currentIndex += 1
         this.resetRate()
+        setTimeout(() => {
+          this.$refs['selectImg'].classList.remove('select-img')
+        })
       }
     },
     close() {
@@ -300,13 +332,13 @@ export default {
 .next {
   right: 16px;
 }
-.list__container {
+.list__img {
   cursor: pointer;
   margin: 8px 4px;
 }
-.footer {
-  width: inherit;
-  text-align: center;
+.pre__footer {
+  display: flex;
+  justify-content: center;
   color: white;
   padding: 8px;
 }

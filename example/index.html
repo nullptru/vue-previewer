@@ -6,20 +6,36 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   <script src="../dist/vue-image-previewer.js"></script>
-  <title>Document</title>
+  <title>Vue Image Previewer Example</title>
 </head>
 <body>
-  <div id="app"></div>
+  <div style="display: flex; align-items: center;justify-content:center;flex-direction: column; height: 100vh">
+    <div style="font-weight: bold; font-size: 20px;margin: 20px;">Vue Image Previewer</div>
+    <div id="app"></div>
+  </div>
+  
   <script>
     new Vue({
       el: '#app',
       components: { VuePreviewer: window.VuePreviewer },
       data() {
         return {
-          imgs: ['https://tpc.googlesyndication.com/simgad/14581137248481744208?sqp=4sqPyQQrQikqJwhfEAEdAAC0QiABKAEwCTgDQPCTCUgAUAFYAWBfcAJ4AcUBLbKdPg&rs=AOga4qkLa5B3YYxjYNuWwQb3i4zax37NNA','https://pic4.zhimg.com/v2-3859d1924b5a39444b56f3d8ceda9057_1200x500.jpg', "https://www.google.com/logos/doodles/2019/2019-womens-world-cup-day-25-4819909247238144-s.png"]
+          options: {defaultWidth: '24%', defaultHeight: '100px'},
+          style: {
+            width: '50%',
+          },
+          imgs: [
+            'http://pic.lvmama.com/uploads/pc/place2/2016-09-14/9aab9bb7-2593-4ca6-8c5a-31355443aebc.jpg',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJQQM7xWSl3uRGecETNjaLl8_2wmAvlGpwyzX_Xs3RyZoTsM_j',
+            "http://crawl.nosdn.127.net/d426f0175b974f7cce092a8f16d0ee09.jpg",
+            "http://seopic.699pic.com/photo/50093/5337.jpg_wh1200.jpg"
+          ]
         }
       },
-      template: '<vue-previewer :images="imgs" mode="image"/>'
+      template: `
+        <vue-previewer :style="style" :images="imgs" mode="image" :options="options">
+          <template v-slot:footer="{image}">{{image.name}}</template>
+        </vue-previewer>`
     })
   </script>
 </body>

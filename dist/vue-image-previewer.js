@@ -231,6 +231,13 @@
     defaultHeight: '75px',
     thumbnailStyle: {
       backgroundSize: 'cover'
+    },
+    keyMap: {
+      zoomin: '+',
+      zoomout: '-',
+      rotate: 'r',
+      prev: 'ArrowLeft',
+      next: 'ArrowRight'
     }
   };
   var script$1 = {
@@ -247,6 +254,10 @@
       options: {
         type: Object,
         default: () => ({})
+      },
+      showFooter: {
+        type: Boolean,
+        default: true
       }
     },
     components: {
@@ -254,13 +265,10 @@
     },
 
     data() {
-      console.log(this.mode);
       return {
         inIframe: window.self !== window.top,
         currentIndex: -1,
-        imageList: [],
         isShowPre: false,
-        thumbnailStyle: this.options.thumbnailStyle || defaultOptions.thumbnailStyle,
         // operation
         scaleRate: 1,
         rotateRate: 0,
@@ -268,18 +276,21 @@
       };
     },
 
-    watch: {
-      images: {
-        immediate: true,
+    computed: {
+      imageList() {
+        return this.normalizeImage(this.images, {
+          sWidth: this.componentOptions.defaultWidth,
+          sHeight: this.componentOptions.defaultHeight
+        });
+      },
 
-        handler(imgs) {
-          this.imageList = this.normalizeImage(imgs, {
-            sWidth: this.options.defaultWidth || defaultOptions.defaultWidth,
-            sHeight: this.options.defaultHeight || defaultOptions.defaultHeight
-          });
-        }
-
+      componentOptions() {
+        return { ...this.$global_vue_image_previewer_options,
+          ...defaultOptions,
+          ...this.options
+        };
       }
+
     },
 
     mounted() {
@@ -292,14 +303,29 @@
 
     methods: {
       onKey(key) {
-        switch (key.code) {
-          case 'ArrowLeft':
+        const {
+          keyMap = {}
+        } = this.componentOptions;
+
+        switch (key.key) {
+          case keyMap.prev:
             this.prevClick();
             break;
 
-          case 'ArrowRight':
+          case keyMap.next:
             this.nextClick();
             break;
+
+          case keyMap.zoomin:
+            this.zoomin();
+            break;
+
+          case keyMap.zoomout:
+            this.zoomout();
+            break;
+
+          case keyMap.rotate:
+            this.rotate();
         }
       },
 
@@ -314,6 +340,7 @@
               width: sWidth,
               height: sHeight,
               src: img,
+              thumbnailSrc: img,
               name: `Image ${idx + 1}`
             };
           } else {
@@ -321,6 +348,7 @@
               width: img.width || sWidth,
               height: img.height || sHeight,
               src: img.src,
+              thumbnailSrc: img.thumbnailSrc || img.src,
               name: img.name
             };
           }
@@ -333,7 +361,9 @@
         if (target.nodeName === 'IMG' || target.getAttribute('name') === 'img') {
           this.currentIndex = +target.dataset['index'];
           this.isShowPre = true;
-          this.$nextTick(() => this.$refs['selectImg'].focus());
+          this.$nextTick(() => {
+            this.$refs['selectImg'].focus();
+          });
           this.$emit('select', this.imageList[this.currentIndex]);
         }
       },
@@ -395,15 +425,23 @@
 
       prevClick() {
         if (this.currentIndex > 0) {
+          this.$refs['selectImg'].classList.add('select-img');
           this.currentIndex -= 1;
           this.resetRate();
+          setTimeout(() => {
+            this.$refs['selectImg'].classList.remove('select-img');
+          });
         }
       },
 
       nextClick() {
         if (this.currentIndex < this.imageList.length - 1) {
+          this.$refs['selectImg'].classList.add('select-img');
           this.currentIndex += 1;
           this.resetRate();
+          setTimeout(() => {
+            this.$refs['selectImg'].classList.remove('select-img');
+          });
         }
       },
 
@@ -440,14 +478,14 @@
           _vm._l(_vm.imageList, function(img, index) {
             return _c(
               "span",
-              { key: index, staticClass: "list__container" },
+              { key: index, staticClass: "list__img" },
               [
                 _vm.mode === "image"
                   ? [
                       _c("img", {
-                        style: _vm.thumbnailStyle,
+                        style: _vm.componentOptions.thumbnailStyle,
                         attrs: {
-                          src: img.src,
+                          src: img.thumbnailSrc,
                           width: img.width,
                           height: img.height,
                           "data-index": index
@@ -576,7 +614,6 @@
                     },
                     [
                       _c("img", {
-                        staticClass: "select-img",
                         attrs: { src: _vm.imageList[_vm.currentIndex].src }
                       })
                     ]
@@ -584,18 +621,24 @@
                 ],
                 1
               ),
-              _c(
-                "div",
-                { staticClass: "pre__footer" },
-                [
-                  _vm._t("default", [
-                    _c("div", { staticClass: "footer" }, [
-                      _vm._v(_vm._s(_vm.imageList[_vm.currentIndex].name))
-                    ])
-                  ])
-                ],
-                2
-              )
+              _vm.showFooter
+                ? _c(
+                    "div",
+                    { staticClass: "pre__footer" },
+                    [
+                      _vm._t(
+                        "footer",
+                        [
+                          _c("div", { staticClass: "footer" }, [
+                            _vm._v(_vm._s(_vm.imageList[_vm.currentIndex].name))
+                          ])
+                        ],
+                        { image: _vm.imageList[_vm.currentIndex] }
+                      )
+                    ],
+                    2
+                  )
+                : _vm._e()
             ])
           : _vm._e()
       ]
@@ -607,11 +650,11 @@
     /* style */
     const __vue_inject_styles__$1 = function (inject) {
       if (!inject) return
-      inject("data-v-6beb053c_0", { source: "\n.link[data-v-6beb053c] {\n  margin-right: 8px;\n  cursor: pointer;\n  color: #20a0ff;\n}\n.pre-container[data-v-6beb053c] {\n  z-index: 1000;\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  margin: 0;\n  background-color: #0e0e0e;\n}\n.pre__header[data-v-6beb053c] {\n  z-index: 1010;\n  position: fixed;\n  top: 0;\n  display: flex;\n  justify-content: space-between;\n  width: calc(100% - 16px);\n  padding: 8px;\n  max-height: 10%;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n}\n.icon[data-v-6beb053c] {\n  font-size: 16px;\n  cursor: pointer;\n  margin-right: 8px;\n  padding: 4px;\n}\n.icon[data-v-6beb053c]:hover {\n  color: darken(white, 10);\n}\n.pre__footer[data-v-6beb053c] {\n  z-index: 1010;\n  position: fixed;\n  bottom: 0;\n  display: flex;\n  width: 100%;\n  max-height: 10%;\n  background-color: rgba(0, 0, 0, 0.3);\n}\n.pre__content[data-v-6beb053c] {\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  overflow: auto;\n}\n*[data-v-6beb053c] {\n  transition: all 0.3s ease;\n}\n.select-img[data-v-6beb053c] {\n  transition: rotate 0s ease;\n}\n.pre__content[data-v-6beb053c]::-webkit-scrollbar {\n  display: none;\n}\n.prev[data-v-6beb053c],\n.next[data-v-6beb053c] {\n  cursor: pointer;\n  z-index: 1010;\n  position: fixed;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n  padding: 16px;\n  border-radius: 50%;\n}\n.prev[data-v-6beb053c]:hover,\n.next[data-v-6beb053c]:hover {\n  color: darken(white, 10);\n  background-color: rgba(255, 255, 255, 0.5);\n}\n.prev[data-v-6beb053c] {\n  left: 16px;\n}\n.next[data-v-6beb053c] {\n  right: 16px;\n}\n.list__container[data-v-6beb053c] {\n  cursor: pointer;\n  margin: 8px 4px;\n}\n.footer[data-v-6beb053c] {\n  width: inherit;\n  text-align: center;\n  color: white;\n  padding: 8px;\n}\n", map: {"version":3,"sources":["/Users/Geass/Desktop/Project/vue-preview/src/components/VuePreviewer.vue"],"names":[],"mappings":";AA4NA;EACA,iBAAA;EACA,eAAA;EACA,cAAA;AACA;AACA;EACA,aAAA;EACA,eAAA;EACA,MAAA;EACA,OAAA;EACA,QAAA;EACA,SAAA;EACA,yBAAA;AACA;AACA;EACA,aAAA;EACA,eAAA;EACA,MAAA;EACA,aAAA;EACA,8BAAA;EACA,wBAAA;EACA,YAAA;EACA,eAAA;EACA,+BAAA;EACA,eAAA;AACA;AACA;EACA,eAAA;EACA,eAAA;EACA,iBAAA;EACA,YAAA;AACA;AACA;EACA,wBAAA;AACA;AACA;EACA,aAAA;EACA,eAAA;EACA,SAAA;EACA,aAAA;EACA,WAAA;EACA,eAAA;EACA,oCAAA;AACA;AACA;EACA,aAAA;EACA,YAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,cAAA;AACA;AACA;EACA,yBAAA;AACA;AACA;EACA,0BAAA;AACA;AACA;EACA,aAAA;AACA;AACA;;EAEA,eAAA;EACA,aAAA;EACA,eAAA;EACA,+BAAA;EACA,eAAA;EACA,aAAA;EACA,kBAAA;AACA;AACA;;EAEA,wBAAA;EACA,0CAAA;AACA;AACA;EACA,UAAA;AACA;AACA;EACA,WAAA;AACA;AACA;EACA,eAAA;EACA,eAAA;AACA;AACA;EACA,cAAA;EACA,kBAAA;EACA,YAAA;EACA,YAAA;AACA","file":"VuePreviewer.vue","sourcesContent":["<template lang=\"pug\">\n  section.vue-preview(@keydown=\"onKey\")\n    //- img list\n    section.list(@click=\"onImageClick\")\n      span.list__container(\n        v-for=\"(img, index) in imageList\"\n        :key=\"index\"\n      )\n        template(v-if=\"mode === 'image'\")\n          img(\n            :src=\"img.src\"\n            :width=\"img.width\"\n            :height=\"img.height\"\n            :data-index=\"index\"\n            :style=\"thumbnailStyle\"\n          )\n        template(v-else)\n          span.link(name=\"img\" :data-index=\"index\") {{ img.name }}\n    //- preview\n    .pre-container(v-if=\"~currentIndex && isShowPre\")\n      header.pre__header\n        div {{ currentIndex+1 }}/{{ imageList.length }}\n        section\n          icon.icon(v-if=\"!inIframe\" type=\"zoom\" @click=\"toggleFullscreen\")\n          icon.icon(type=\"zoomin\" @click=\"zoomin\")\n          icon.icon(type=\"zoomout\" @click=\"zoomout\")\n          icon.icon(type=\"rotate\" @click=\"rotate\")\n          icon.icon(type=\"close\" @click=\"close\")\n      .pre__content(@click.prevent.stop=\"close\")\n        icon.prev(v-if=\"currentIndex\" type=\"prev\" @click.prevent.stop=\"prevClick\")\n        icon.next(v-if=\"currentIndex < imageList.length-1\" type=\"next\" @click.prevent.stop=\"nextClick\")\n\n        span(\n          ref=\"selectImg\"\n          :style=\"{cursor: cursorStyle, transform: `scale(${scaleRate}) rotate(${rotateRate}deg)`}\"\n          @click.prevent.stop=\"imageClick\"\n        )\n          img.select-img(:src=\"imageList[currentIndex].src\")\n      //- footer\n      .pre__footer\n        slot\n          .footer {{ imageList[currentIndex].name }}\n</template>\n\n<script>\nimport Icon from './Icon.vue'\n\nconst defaultOptions = {\n  defaultWidth: '100px',\n  defaultHeight: '75px',\n  thumbnailStyle: {\n    backgroundSize: 'cover'\n  }\n}\nexport default {\n  name: 'VuePreviewer',\n  props: {\n    images: {\n      type: Array,\n      default: () => []\n    },\n    mode: {\n      type: String,\n      default: 'image'\n    },\n    options: {\n      type: Object,\n      default: () => ({})\n    }\n  },\n  components: { Icon },\n  data() {\n    console.log(this.mode)\n    return {\n      inIframe: window.self !== window.top,\n      currentIndex: -1,\n      imageList: [],\n\n      isShowPre: false,\n      thumbnailStyle: this.options.thumbnailStyle || defaultOptions.thumbnailStyle,\n      // operation\n      scaleRate: 1,\n      rotateRate: 0,\n      cursorStyle: 'zoom-in'\n    }\n  },\n  watch: {\n    images: {\n      immediate: true,\n      handler(imgs) {\n        this.imageList = this.normalizeImage(imgs, {\n          sWidth: this.options.defaultWidth || defaultOptions.defaultWidth,\n          sHeight: this.options.defaultHeight || defaultOptions.defaultHeight\n        })\n      }\n    }\n  },\n  mounted() {\n    document.addEventListener('keydown', this.onKey)\n  },\n  destroyed() {\n    document.removeEventListener('keydown', this.onKey)\n  },\n  methods: {\n    onKey(key) {\n      switch (key.code) {\n        case 'ArrowLeft':\n          this.prevClick()\n          break\n        case 'ArrowRight':\n          this.nextClick()\n          break\n      }\n    },\n    normalizeImage(imgs, { sWidth, sHeight }) {\n      return imgs.map((img, idx) => {\n        // only src source\n        if (typeof img === 'string') {\n          return {\n            width: sWidth,\n            height: sHeight,\n            src: img,\n            name: `Image ${idx + 1}`\n          }\n        } else {\n          return {\n            width: img.width || sWidth,\n            height: img.height || sHeight,\n            src: img.src,\n            name: img.name\n          }\n        }\n      })\n    },\n    onImageClick({ target }) {\n      if (target.nodeName === 'IMG' || target.getAttribute('name') === 'img') {\n        this.currentIndex = +target.dataset['index']\n        this.isShowPre = true\n        this.$nextTick(() => this.$refs['selectImg'].focus())\n        this.$emit('select', this.imageList[this.currentIndex])\n      }\n    },\n    zoomin() {\n      this.scaleRate += 0.5\n    },\n    zoomout() {\n      this.scaleRate -= 0.25\n      this.scaleRate = Math.max(this.scaleRate, 0.25)\n    },\n    rotate() {\n      this.rotateRate += 90\n    },\n    toggleFullscreen() {\n      const isFullscreen =\n        document.fullscreenElement ||\n        document.msFullscreenElement ||\n        document.mozFullscreenElement ||\n        document.webkitFullscreenElement ||\n        false\n      if (isFullscreen) {\n        this.exitFullscreen()\n      } else {\n        this.enterFullscreen()\n      }\n    },\n    exitFullscreen() {\n      const el = document.documentElement\n      const rfs = el.cancelFullscreen || el.webkitExitFullscreen || el.mozCancelFullscreen || el.exitFullscreen\n      if (rfs) {\n        rfs.call(el)\n      } else {\n        console.error(\"Your browser seems doesn't support fullscreen\")\n      }\n    },\n    enterFullscreen() {\n      const el = document.documentElement\n      const rfs =\n        el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullscreen || el.msRequestFullscreen\n      if (rfs) {\n        rfs.call(el)\n      } else {\n        console.error(\"Your browser seems doesn't support fullscreen\")\n      }\n    },\n    imageClick() {\n      if (this.cursorStyle === 'zoom-in') {\n        this.cursorStyle = 'zoom-out'\n        this.scaleRate += 0.5\n      } else {\n        this.cursorStyle = 'zoom-in'\n        this.scaleRate -= 0.5\n      }\n    },\n    prevClick() {\n      if (this.currentIndex > 0) {\n        this.currentIndex -= 1\n        this.resetRate()\n      }\n    },\n    nextClick() {\n      if (this.currentIndex < this.imageList.length - 1) {\n        this.currentIndex += 1\n        this.resetRate()\n      }\n    },\n    close() {\n      this.currentIndex = -1\n      this.isShowPre = false\n      this.resetRate()\n      this.$emit('close')\n    },\n    resetRate() {\n      this.scaleRate = 1\n      this.rotateRate = 0\n    }\n  }\n}\n</script>\n\n<style scoped>\n.link {\n  margin-right: 8px;\n  cursor: pointer;\n  color: #20a0ff;\n}\n.pre-container {\n  z-index: 1000;\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  margin: 0;\n  background-color: #0e0e0e;\n}\n.pre__header {\n  z-index: 1010;\n  position: fixed;\n  top: 0;\n  display: flex;\n  justify-content: space-between;\n  width: calc(100% - 16px);\n  padding: 8px;\n  max-height: 10%;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n}\n.icon {\n  font-size: 16px;\n  cursor: pointer;\n  margin-right: 8px;\n  padding: 4px;\n}\n.icon:hover {\n  color: darken(white, 10);\n}\n.pre__footer {\n  z-index: 1010;\n  position: fixed;\n  bottom: 0;\n  display: flex;\n  width: 100%;\n  max-height: 10%;\n  background-color: rgba(0, 0, 0, 0.3);\n}\n.pre__content {\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  overflow: auto;\n}\n* {\n  transition: all 0.3s ease;\n}\n.select-img {\n  transition: rotate 0s ease;\n}\n.pre__content::-webkit-scrollbar {\n  display: none;\n}\n.prev,\n.next {\n  cursor: pointer;\n  z-index: 1010;\n  position: fixed;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n  padding: 16px;\n  border-radius: 50%;\n}\n.prev:hover,\n.next:hover {\n  color: darken(white, 10);\n  background-color: rgba(255, 255, 255, 0.5);\n}\n.prev {\n  left: 16px;\n}\n.next {\n  right: 16px;\n}\n.list__container {\n  cursor: pointer;\n  margin: 8px 4px;\n}\n.footer {\n  width: inherit;\n  text-align: center;\n  color: white;\n  padding: 8px;\n}\n</style>\n\n"]}, media: undefined });
+      inject("data-v-02c1f29a_0", { source: "\n.link[data-v-02c1f29a] {\n  margin-right: 8px;\n  cursor: pointer;\n  color: #20a0ff;\n}\n.pre-container[data-v-02c1f29a] {\n  z-index: 1000;\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  margin: 0;\n  background-color: #0e0e0e;\n}\n.pre__header[data-v-02c1f29a] {\n  z-index: 1010;\n  position: fixed;\n  top: 0;\n  display: flex;\n  justify-content: space-between;\n  width: calc(100% - 16px);\n  padding: 8px;\n  max-height: 10%;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n}\n.icon[data-v-02c1f29a] {\n  font-size: 16px;\n  cursor: pointer;\n  margin-right: 8px;\n  padding: 4px;\n}\n.icon[data-v-02c1f29a]:hover {\n  color: darken(white, 10);\n}\n.pre__footer[data-v-02c1f29a] {\n  z-index: 1010;\n  position: fixed;\n  bottom: 0;\n  display: flex;\n  width: 100%;\n  max-height: 10%;\n  background-color: rgba(0, 0, 0, 0.3);\n}\n.pre__content[data-v-02c1f29a] {\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  overflow: auto;\n}\n*[data-v-02c1f29a] {\n  transition: all 0.3s ease;\n}\n.select-img[data-v-02c1f29a] {\n  transition: rotate 0s ease;\n}\n.pre__content[data-v-02c1f29a]::-webkit-scrollbar {\n  display: none;\n}\n.prev[data-v-02c1f29a],\n.next[data-v-02c1f29a] {\n  cursor: pointer;\n  z-index: 1010;\n  position: fixed;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n  padding: 16px;\n  border-radius: 50%;\n}\n.prev[data-v-02c1f29a]:hover,\n.next[data-v-02c1f29a]:hover {\n  color: darken(white, 10);\n  background-color: rgba(255, 255, 255, 0.5);\n}\n.prev[data-v-02c1f29a] {\n  left: 16px;\n}\n.next[data-v-02c1f29a] {\n  right: 16px;\n}\n.list__img[data-v-02c1f29a] {\n  cursor: pointer;\n  margin: 8px 4px;\n}\n.pre__footer[data-v-02c1f29a] {\n  display: flex;\n  justify-content: center;\n  color: white;\n  padding: 8px;\n}\n", map: {"version":3,"sources":["/Users/Geass/Desktop/Project/vue-preview/src/components/VuePreviewer.vue"],"names":[],"mappings":";AA4PA;EACA,iBAAA;EACA,eAAA;EACA,cAAA;AACA;AACA;EACA,aAAA;EACA,eAAA;EACA,MAAA;EACA,OAAA;EACA,QAAA;EACA,SAAA;EACA,yBAAA;AACA;AACA;EACA,aAAA;EACA,eAAA;EACA,MAAA;EACA,aAAA;EACA,8BAAA;EACA,wBAAA;EACA,YAAA;EACA,eAAA;EACA,+BAAA;EACA,eAAA;AACA;AACA;EACA,eAAA;EACA,eAAA;EACA,iBAAA;EACA,YAAA;AACA;AACA;EACA,wBAAA;AACA;AACA;EACA,aAAA;EACA,eAAA;EACA,SAAA;EACA,aAAA;EACA,WAAA;EACA,eAAA;EACA,oCAAA;AACA;AACA;EACA,aAAA;EACA,YAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,cAAA;AACA;AACA;EACA,yBAAA;AACA;AACA;EACA,0BAAA;AACA;AACA;EACA,aAAA;AACA;AACA;;EAEA,eAAA;EACA,aAAA;EACA,eAAA;EACA,+BAAA;EACA,eAAA;EACA,aAAA;EACA,kBAAA;AACA;AACA;;EAEA,wBAAA;EACA,0CAAA;AACA;AACA;EACA,UAAA;AACA;AACA;EACA,WAAA;AACA;AACA;EACA,eAAA;EACA,eAAA;AACA;AACA;EACA,aAAA;EACA,uBAAA;EACA,YAAA;EACA,YAAA;AACA","file":"VuePreviewer.vue","sourcesContent":["<template lang=\"pug\">\n  section.vue-preview(@keydown=\"onKey\")\n    //- img list\n    section.list(@click=\"onImageClick\")\n      span.list__img(\n        v-for=\"(img, index) in imageList\"\n        :key=\"index\"\n      )\n        template(v-if=\"mode === 'image'\")\n          img(\n            :src=\"img.thumbnailSrc\"\n            :width=\"img.width\"\n            :height=\"img.height\"\n            :data-index=\"index\"\n            :style=\"componentOptions.thumbnailStyle\"\n          )\n        template(v-else)\n          span.link(name=\"img\" :data-index=\"index\") {{ img.name }}\n    //- preview\n    .pre-container(v-if=\"~currentIndex && isShowPre\")\n      header.pre__header\n        div {{ currentIndex+1 }}/{{ imageList.length }}\n        section\n          icon.icon(v-if=\"!inIframe\" type=\"zoom\" @click=\"toggleFullscreen\")\n          icon.icon(type=\"zoomin\" @click=\"zoomin\")\n          icon.icon(type=\"zoomout\" @click=\"zoomout\")\n          icon.icon(type=\"rotate\" @click=\"rotate\")\n          icon.icon(type=\"close\" @click=\"close\")\n      .pre__content(@click.prevent.stop=\"close\")\n        icon.prev(v-if=\"currentIndex\" type=\"prev\" @click.prevent.stop=\"prevClick\")\n        icon.next(v-if=\"currentIndex < imageList.length-1\" type=\"next\" @click.prevent.stop=\"nextClick\")\n\n        span(\n          ref=\"selectImg\"\n          :style=\"{cursor: cursorStyle, transform: `scale(${scaleRate}) rotate(${rotateRate}deg)`}\"\n          @click.prevent.stop=\"imageClick\"\n        )\n          img(:src=\"imageList[currentIndex].src\")\n      //- footer\n      .pre__footer(v-if=\"showFooter\")\n        slot(name=\"footer\" :image=\"imageList[currentIndex]\")\n          .footer {{ imageList[currentIndex].name }}\n</template>\n\n<script>\nimport Icon from './Icon.vue'\n\nconst defaultOptions = {\n  defaultWidth: '100px',\n  defaultHeight: '75px',\n  thumbnailStyle: {\n    backgroundSize: 'cover'\n  },\n  keyMap: {\n    zoomin: '+',\n    zoomout: '-',\n    rotate: 'r',\n    prev: 'ArrowLeft',\n    next: 'ArrowRight'\n  }\n}\nexport default {\n  name: 'VuePreviewer',\n  props: {\n    images: {\n      type: Array,\n      default: () => []\n    },\n    mode: {\n      type: String,\n      default: 'image'\n    },\n    options: {\n      type: Object,\n      default: () => ({})\n    },\n    showFooter: {\n      type: Boolean,\n      default: true\n    }\n  },\n  components: { Icon },\n  data() {\n    return {\n      inIframe: window.self !== window.top,\n      currentIndex: -1,\n      isShowPre: false,\n      // operation\n      scaleRate: 1,\n      rotateRate: 0,\n      cursorStyle: 'zoom-in'\n    }\n  },\n  computed: {\n    imageList() {\n      return this.normalizeImage(this.images, {\n        sWidth: this.componentOptions.defaultWidth,\n        sHeight: this.componentOptions.defaultHeight\n      })\n    },\n    componentOptions() {\n      return {\n        ...this.$global_vue_image_previewer_options,\n        ...defaultOptions,\n        ...this.options\n      }\n    }\n  },\n  mounted() {\n    document.addEventListener('keydown', this.onKey)\n  },\n  destroyed() {\n    document.removeEventListener('keydown', this.onKey)\n  },\n  methods: {\n    onKey(key) {\n      const { keyMap = {} } = this.componentOptions\n      switch (key.key) {\n        case keyMap.prev:\n          this.prevClick()\n          break\n        case keyMap.next:\n          this.nextClick()\n          break\n        case keyMap.zoomin:\n          this.zoomin()\n          break\n        case keyMap.zoomout:\n          this.zoomout()\n          break\n        case keyMap.rotate:\n          this.rotate()\n      }\n    },\n    normalizeImage(imgs, { sWidth, sHeight }) {\n      return imgs.map((img, idx) => {\n        // only src source\n        if (typeof img === 'string') {\n          return {\n            width: sWidth,\n            height: sHeight,\n            src: img,\n            thumbnailSrc: img,\n            name: `Image ${idx + 1}`\n          }\n        } else {\n          return {\n            width: img.width || sWidth,\n            height: img.height || sHeight,\n            src: img.src,\n            thumbnailSrc: img.thumbnailSrc || img.src,\n            name: img.name\n          }\n        }\n      })\n    },\n    onImageClick({ target }) {\n      if (target.nodeName === 'IMG' || target.getAttribute('name') === 'img') {\n        this.currentIndex = +target.dataset['index']\n        this.isShowPre = true\n        this.$nextTick(() => {\n          this.$refs['selectImg'].focus()\n        })\n        this.$emit('select', this.imageList[this.currentIndex])\n      }\n    },\n    zoomin() {\n      this.scaleRate += 0.5\n    },\n    zoomout() {\n      this.scaleRate -= 0.25\n      this.scaleRate = Math.max(this.scaleRate, 0.25)\n    },\n    rotate() {\n      this.rotateRate += 90\n    },\n    toggleFullscreen() {\n      const isFullscreen =\n        document.fullscreenElement ||\n        document.msFullscreenElement ||\n        document.mozFullscreenElement ||\n        document.webkitFullscreenElement ||\n        false\n      if (isFullscreen) {\n        this.exitFullscreen()\n      } else {\n        this.enterFullscreen()\n      }\n    },\n    exitFullscreen() {\n      const el = document.documentElement\n      const rfs = el.cancelFullscreen || el.webkitExitFullscreen || el.mozCancelFullscreen || el.exitFullscreen\n      if (rfs) {\n        rfs.call(el)\n      } else {\n        console.error(\"Your browser seems doesn't support fullscreen\")\n      }\n    },\n    enterFullscreen() {\n      const el = document.documentElement\n      const rfs =\n        el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullscreen || el.msRequestFullscreen\n      if (rfs) {\n        rfs.call(el)\n      } else {\n        console.error(\"Your browser seems doesn't support fullscreen\")\n      }\n    },\n    imageClick() {\n      if (this.cursorStyle === 'zoom-in') {\n        this.cursorStyle = 'zoom-out'\n        this.scaleRate += 0.5\n      } else {\n        this.cursorStyle = 'zoom-in'\n        this.scaleRate -= 0.5\n      }\n    },\n    prevClick() {\n      if (this.currentIndex > 0) {\n        this.$refs['selectImg'].classList.add('select-img')\n        this.currentIndex -= 1\n        this.resetRate()\n        setTimeout(() => {\n          this.$refs['selectImg'].classList.remove('select-img')\n        })\n      }\n    },\n    nextClick() {\n      if (this.currentIndex < this.imageList.length - 1) {\n        this.$refs['selectImg'].classList.add('select-img')\n        this.currentIndex += 1\n        this.resetRate()\n        setTimeout(() => {\n          this.$refs['selectImg'].classList.remove('select-img')\n        })\n      }\n    },\n    close() {\n      this.currentIndex = -1\n      this.isShowPre = false\n      this.resetRate()\n      this.$emit('close')\n    },\n    resetRate() {\n      this.scaleRate = 1\n      this.rotateRate = 0\n    }\n  }\n}\n</script>\n\n<style scoped>\n.link {\n  margin-right: 8px;\n  cursor: pointer;\n  color: #20a0ff;\n}\n.pre-container {\n  z-index: 1000;\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  margin: 0;\n  background-color: #0e0e0e;\n}\n.pre__header {\n  z-index: 1010;\n  position: fixed;\n  top: 0;\n  display: flex;\n  justify-content: space-between;\n  width: calc(100% - 16px);\n  padding: 8px;\n  max-height: 10%;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n}\n.icon {\n  font-size: 16px;\n  cursor: pointer;\n  margin-right: 8px;\n  padding: 4px;\n}\n.icon:hover {\n  color: darken(white, 10);\n}\n.pre__footer {\n  z-index: 1010;\n  position: fixed;\n  bottom: 0;\n  display: flex;\n  width: 100%;\n  max-height: 10%;\n  background-color: rgba(0, 0, 0, 0.3);\n}\n.pre__content {\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  overflow: auto;\n}\n* {\n  transition: all 0.3s ease;\n}\n.select-img {\n  transition: rotate 0s ease;\n}\n.pre__content::-webkit-scrollbar {\n  display: none;\n}\n.prev,\n.next {\n  cursor: pointer;\n  z-index: 1010;\n  position: fixed;\n  color: rgba(255, 255, 255, 0.7);\n  font-size: 16px;\n  padding: 16px;\n  border-radius: 50%;\n}\n.prev:hover,\n.next:hover {\n  color: darken(white, 10);\n  background-color: rgba(255, 255, 255, 0.5);\n}\n.prev {\n  left: 16px;\n}\n.next {\n  right: 16px;\n}\n.list__img {\n  cursor: pointer;\n  margin: 8px 4px;\n}\n.pre__footer {\n  display: flex;\n  justify-content: center;\n  color: white;\n  padding: 8px;\n}\n</style>\n\n"]}, media: undefined });
 
     };
     /* scoped */
-    const __vue_scope_id__$1 = "data-v-6beb053c";
+    const __vue_scope_id__$1 = "data-v-02c1f29a";
     /* module identifier */
     const __vue_module_identifier__$1 = undefined;
     /* functional template */
@@ -682,11 +725,12 @@
     });
   }(window);
 
-  function install(Vue) {
+  function install(Vue, options) {
     if (install.installed) {
       return;
     }
 
+    Vue.prototype.$global_vue_image_previewer_options = options;
     install.installed = true;
     Vue.component(VuePreviewer.name, VuePreviewer);
   }
