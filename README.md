@@ -1,6 +1,8 @@
 # vue-previewer
 👀A vue component for previewing images
 
+### Live Demo
+[>> Live Demo](https://geasscn.com/static/vue-previewer/index.html)
 ### Features
 + no other dependencies
 + support zoom-in, zoom-out, rotate, fullscreen operations
