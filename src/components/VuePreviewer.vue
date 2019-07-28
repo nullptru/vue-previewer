@@ -35,7 +35,7 @@
           :style="{cursor: cursorStyle, transform: `scale(${scaleRate}) rotate(${rotateRate}deg)`}"
           @click.prevent.stop="imageClick"
         )
-          img(:src="imageList[currentIndex].src")
+          img(ref="img" :src="imageList[currentIndex].src" @load="onImageLoad")
       //- footer
       .pre__footer(v-if="showFooter")
         slot(name="footer" :image="imageList[currentIndex]")
@@ -132,6 +132,27 @@ export default {
           this.rotate()
       }
     },
+    onImageLoad() {
+      const scrHeight = document.documentElement.clientHeight
+      const scrWidth = document.documentElement.clientWidth
+      const img = this.$refs.img;
+      if (img) {
+        const { width, height } = img.getBoundingClientRect()
+        const dW = width / scrWidth
+        const dH = height / scrHeight
+        if (dW > 1 && dH > 1) {
+          if (dW > dH) {
+            img.style.width = `${scrWidth}px`
+          } else {
+            img.style.height = `${scrHeight}px`
+          }
+        } else if (dW > 1) {
+          img.style.width = `${scrWidth}px`
+        } else if (dH > 1) {
+          img.style.height = `${scrHeight}px`
+        }
+      }
+    },
     normalizeImage(imgs, { sWidth, sHeight }) {
       return imgs.map((img, idx) => {
         // only src source
@@ -216,22 +237,24 @@ export default {
       }
     },
     prevClick() {
+      const selectImgClassList = (this.$refs['selectImg'] || {}).classList
       if (this.currentIndex > 0) {
-        this.$refs['selectImg'].classList.add('select-img')
+        selectImgClassList && selectImgClassList.add('select-img')
         this.currentIndex -= 1
         this.resetRate()
         setTimeout(() => {
-          this.$refs['selectImg'].classList.remove('select-img')
+          selectImgClassList && selectImgClassList.remove('select-img')
         })
       }
     },
     nextClick() {
+      const selectImgClassList = (this.$refs['selectImg'] || {}).classList
       if (this.currentIndex < this.imageList.length - 1) {
-        this.$refs['selectImg'].classList.add('select-img')
+        selectImgClassList && selectImgClassList.add('select-img')
         this.currentIndex += 1
         this.resetRate()
         setTimeout(() => {
-          this.$refs['selectImg'].classList.remove('select-img')
+          selectImgClassList && selectImgClassList.remove('select-img')
         })
       }
     },
